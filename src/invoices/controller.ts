@@ -1,11 +1,17 @@
+import pgPool from "../postgresql/dbconstants";
+import { Router, Request, Response } from "express";
+import * as Invoice from './invoiveModels'
+const invoiceRouter = Router();
 
-const invoiceRouter = require("express").Router();
+invoiceRouter.post("/add", async (req: Request, res: Response) => {
+  const pool = pgPool;
+  const client = await pool.connect(); // Acquire a client from the pool
 
-invoiceRouter.post("/add", async (req, res) => {
   try {
-    const pool = pgPool;
+    // Begin the transaction
+    await client.query("BEGIN");
     const invoice = req.body.invoice;
-    await Invoice.createTable(pool, req.body.username);
+    await Invoice.Invoices.createTable(client, req.body.username);
   } catch (e) {
     console.error("INternal server error");
   }

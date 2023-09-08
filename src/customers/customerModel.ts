@@ -1,5 +1,19 @@
+import { Pool, PoolClient } from "pg";
+interface Customer {
+
+  name: string,
+  address: string,
+  phone_number: string,
+  email: string,
+  gstIN: string,
+  dealer_type: string,
+  pan_card: string,
+  aadhaar: string,
+  user_id: string
+}
+
 const Customers = {
-  createTable: async function (client, username) {
+  createTable: async function (client: PoolClient, username: string) {
     const sql = `CREATE TABLE IF NOT EXISTS ${username}_customers (
         id SERIAL PRIMARY KEY,
         name VARCHAR(255) NOT NULL,
@@ -17,18 +31,21 @@ const Customers = {
   },
 
   insertRecord: async function (
-    client,
-    name,
-    address,
-    phone_number,
-    email,
-    gstIN,
-    dealer_type,
-    pan,
-    aadhaar,
-    user_id
+    client: PoolClient,
+    custData: Customer
   ) {
-    const sql = `INSERT INTO customers (name, address, phone_number, email, gstIN, dealer_type, pan, aadhaar, user_id)
+    const {
+      name,
+      address,
+      phone_number,
+      email,
+      gstIN,
+      dealer_type,
+      pan_card,
+      aadhaar,
+      user_id
+    } = custData;
+    const sql = `INSERT INTO customers (name, address, phone_number, email, gstIN, dealer_type, pan_card, aadhaar, user_id)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`;
     await client.query(sql, [
       name,
@@ -37,11 +54,12 @@ const Customers = {
       email,
       gstIN,
       dealer_type,
-      pan,
+      pan_card,
       aadhaar,
       user_id,
     ]);
 
-    module.exports = { Customers };
   },
 };
+
+export { Customers, Customer }

@@ -66,4 +66,4 @@ const authenticateToken = (pgPool: Pool) => {
 };
 
 
-module.exports = { createToken, reNewToken, authenticateToken };
+export { createToken, reNewToken, authenticateToken };

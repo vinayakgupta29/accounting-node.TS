@@ -1,5 +1,21 @@
-const Invoice = {
-  createTable: async function (client, username) {
+import { PoolClient } from "pg";
+interface Invoice {
+
+  customer_id: string,
+  transaction_id: string,
+  date_time: string,
+  total: number,
+  total_discount: number,
+  packaging: number,
+  freight: number,
+  taxable_amount: number,
+  tax_collected_at_source: number,
+  round_off: number,
+  grand_total: number,
+  method_of_payment: string
+}
+const Invoices = {
+  createTable: async function (client: PoolClient, username: string) {
     const sql = `CREATE TABLE IF NOT EXISTS ${username}invoices (
     id SERIAL PRIMARY KEY,
     customer_id VARCHAR(256) NOT NULL,
@@ -20,20 +36,21 @@ const Invoice = {
     await client.query(sql);
   },
   insertRecord: async function (
-    client,
-    customer_id,
-    transaction_id,
-    date_time,
-    total,
-    total_discount,
-    packaging,
-    freight,
-    taxable_amount,
-    tax_collected_at_source,
-    round_off,
-    grand_total,
-    method_of_payment
+    client: PoolClient, invoiceData: Invoice
   ) {
+    const {
+      customer_id,
+      transaction_id,
+      date_time,
+      total,
+      total_discount,
+      packaging,
+      freight,
+      taxable_amount,
+      tax_collected_at_source,
+      round_off,
+      grand_total,
+      method_of_payment } = invoiceData;
     const sql = `INSERT INTO invoices (customer_id, transaction_id, date_time, total, total_discount, packaging, freight, taxable_amount, tax_collected_at_source, round_off, grand_total, method_of_payment)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`;
     await client.query(sql, [
@@ -53,8 +70,17 @@ const Invoice = {
   },
 };
 
+interface InvoiceLine {
+
+  username: string,
+  invoice_id: string,
+  product_id: string,
+  quantity: number,
+  amount: number
+}
+
 const InvoiceLines = {
-  createTable: async function (client, username) {
+  createTable: async function (client: PoolClient, username: string) {
     const sql = `CREATE TABLE IF NOT EXISTS ${username}_invoice_lines (
       id SERIAL PRIMARY KEY,
       invoice_id VARCHAR(256) NOT NULL,
@@ -68,17 +94,18 @@ const InvoiceLines = {
   //      FOREIGN KEY (invoice_id) REFERENCES ${username}_invoices (id),
 
   insertRecord: async function (
-    client,
-    username,
-    invoice_id,
-    product_id,
-    quantity,
-    amount
+    client: PoolClient, invoicelinedata: InvoiceLine
   ) {
+    const {
+      username,
+      invoice_id,
+      product_id,
+      quantity,
+      amount } = invoicelinedata
     const sql = `INSERT INTO ${username}_invoice_lines (invoice_id, product_id,  quantity,  amount)
     VALUES ($1, $2, $3, $4)`;
     await client.query(sql, [invoice_id, product_id, quantity, amount]);
   },
 };
 
-module.exports = { Invoice, InvoiceLines };
+export { Invoice, Invoices, InvoiceLine, InvoiceLines };

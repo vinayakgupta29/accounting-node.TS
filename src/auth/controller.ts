@@ -3,10 +3,10 @@ import { User, UserData } from "./usermodel";
 
 require("dotenv").config();
 import bcrypt from "bcrypt";
-import express from "express";
-import { Request, Response } from "express";
+import { Request, Response, Router } from "express";
+import * as Token from "../middleware/tokenhandler";
 
-const authRouter = express.Router();
+const authRouter = Router();
 
 authRouter.post("/signup", async (req: Request, res: Response) => {
   const pool = pgPool;
@@ -44,6 +44,7 @@ authRouter.post("/signup", async (req: Request, res: Response) => {
 
     // Encrypt the password
     const hashedPassword = await bcrypt.hash(newUser.password, 10);
+    newUser.password = hashedPassword;
 
     // Insert the new user into the database
     await User.insertRecord(
@@ -58,7 +59,7 @@ authRouter.post("/signup", async (req: Request, res: Response) => {
 
     res
       .status(201)
-      .json({ message: "User created successfully", user: newUser });
+      .json({ message: "User created successfully", user: newUser, token: Token.createToken(newUser.username) });
   } catch (error) {
     console.error("Error creating user:", error);
 
