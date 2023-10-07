@@ -13,18 +13,14 @@ inventoryRouter.post("/add", async (req: Request, res: Response) => {
 
     // Begin the transaction
     await client.query("BEGIN");// Acquire a client from the pool
-
+    const { username, product_name, quantity, unit_price } = req.body;
     const newProduct: Product = {
-      username: req.body.username,
-      product_name: req.body.product_name,
-      quantity: req.body.quantity,
-      unit_price: req.body.unit_price,
+      product_name: product_name,
+      quantity: quantity,
+      unit_price: unit_price,
     };
-    await Products.createTable(client, newProduct.username);
-    const result = await Products.insertRecord(
-      client,
-      newProduct
-    );
+    await Products.createTable(client, username);
+    const result = await Products.insertRecord(client, username, newProduct);
 
     // Commit the transaction
     await client.query("COMMIT");
