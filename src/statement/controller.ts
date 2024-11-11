@@ -1,12 +1,12 @@
-import { Router, Request, Response } from "express";
-import { query, validationResult } from 'express-validator'
+import express, { Request, Response } from "express";
 import { cleanAlphanumeric } from "../server-security/server-security";
 import pgPool from "../postgresql/dbconstants";
 import { InvoiceActions, invoiceActions } from "../invoices/ctrlFunc";
 import util from 'util'
 import zlib from 'zlib'
+import { query, validationResult } from "express-validator";
 
-const statementRouter = Router()
+const statementRouter = express.Router();
 
 statementRouter.get("/get",
     [query("username").trim().customSanitizer(cleanAlphanumeric).isString()],
@@ -49,7 +49,7 @@ statementRouter.get("/get",
             const response = await client.query(sql);
             const responseData = response.rows;
             await client.query("COMMIT");
-            client.release();
+
             const compressedData = await util.promisify(zlib.gzip)(
                 JSON.stringify({ invoices: responseData })
             );
@@ -63,9 +63,11 @@ statementRouter.get("/get",
 
         } catch (e) {
             await client.query("ROLLBACK");
-            client.release();
+
             console.error("error Getting invoices", e);
             res.status(500).json({ error: "Internal server error" });
+        } finally {
+            client.release();
         }
     })
 

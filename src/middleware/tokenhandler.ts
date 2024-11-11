@@ -39,15 +39,15 @@ const authenticateToken = (pgPool: Pool) => {
     if (!token) {
       return res.status(401).json({ error: "Token not provided" });
     }
-
+    const client = await pgPool.connect();
     try {
       const decoded: any = jwt.verify(token, tokenEnv);
 
       // Assuming you have a 'users' table with a 'username' column in your database
-      const client = await pgPool.connect();
+
       const userQuery = "SELECT * FROM users WHERE username = $1";
       const { rows } = await client.query(userQuery, [decoded.username]);
-      client.release();
+
 
       if (rows.length === 0) {
         return res.status(401).json({ error: "User not found" });
@@ -61,6 +61,8 @@ const authenticateToken = (pgPool: Pool) => {
     } catch (error) {
       console.error("Error authenticating token:", error);
       return res.status(401).json({ error: "Invalid token" });
+    } finally {
+      client.release(); // Release the client back to the pool
     }
   };
 };

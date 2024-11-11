@@ -1,20 +1,21 @@
 import { Router, Request, Response } from "express";
 import pgPool from "../postgresql/dbconstants";
-import { check, query, validationResult } from "express-validator";
+import { body, query, validationResult } from "express-validator";
 import { Customer, Customers } from "./customerModel";
 import { generateCustomerId } from "../id_controller/id_genrator";
-import util from 'util'
+
 const customerRouter = Router();
+
 customerRouter.post("/add", [
-    check("name").isString().trim().notEmpty().isAlphanumeric(),
-    check("address").isString().trim().notEmpty().isAlphanumeric(),
-    check("phone").isString().trim().notEmpty().isAlphanumeric(),
-    check("email").isString().trim().notEmpty().isEmail(),
-    check("gstIN").isString().trim().notEmpty().isAlphanumeric(),
-    check("pan").isString().trim().notEmpty().isAlphanumeric(),
-    check("aadhaar").isString().trim().notEmpty().isAlphanumeric(),
-    check("dealer_type").isString().trim().isAlphanumeric(),
-    check("username").isString().trim().notEmpty().isAlphanumeric(),
+    body("name").isString().trim().notEmpty().isAlphanumeric(),
+    body("address").isString().trim().notEmpty().isAlphanumeric(),
+    body("phone").isString().trim().notEmpty().isAlphanumeric(),
+    body("email").isString().trim().notEmpty().isEmail(),
+    body("gstIN").isString().trim().notEmpty().isAlphanumeric(),
+    body("pan").isString().trim().notEmpty().isAlphanumeric(),
+    body("aadhaar").isString().trim().notEmpty().isAlphanumeric(),
+    body("dealer_type").isString().trim().isAlphanumeric(),
+    body("username").isString().trim().notEmpty().isAlphanumeric(),
 ],
     async (req: Request, res: Response) => {
         const errors = validationResult(req);
@@ -61,9 +62,8 @@ customerRouter.post("/add", [
             // Commit the transaction
             await client.query("COMMIT");
 
-            client.release(); // Release the client back to the pool
 
-            res
+            return res
                 .status(201)
                 .json({ message: "customer created successfully", customer: response });
         } catch (e) {
@@ -72,36 +72,40 @@ customerRouter.post("/add", [
             // Rollback the transaction in case of an error
             await client.query("ROLLBACK");
 
-            client.release(); // Release the client back to the pool
 
-            res.status(500).json({ error: "Internal server error" });
+            return res.status(500).json({ error: "Internal server error" });
+        } finally {
+            client.release(); // Release the client back to the pool
         }
     });
 
-customerRouter.get("/get", [query('username').isString().trim().isAlphanumeric()], async (req: Request, res: Response) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-        console.error(errors.array());
-        return res.status(422).json({ Errors: errors.array() });
-    }
-    const pool = pgPool;
-    const username = req.query.username;
-    const client = await pool.connect();
-    try {
-        await client.query('BEGIN')
-        const response = (await client.query(`SELECT * FROM ${username}_customers;`)).rows;
-        await client.query("COMMIT");
-        client.release();
-        res.status(200).json({
-            message: "customer fetched successfully",
-            customers: response,
-        })
+customerRouter.get("/get",
+    [query('username').isString().trim().isAlphanumeric()],
 
-    } catch (e) {
-        console.error("Error fetching customer : ", e);
-        await client.query("ROLLBACK");
-        client.release();
-    }
+    async (req: Request, res: Response) => {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            console.error(errors.array());
+            return res.status(422).json({ Errors: errors.array() });
+        }
+        const pool = pgPool;
+        const username = req.query.username;
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN')
+            const response = (await client.query(`SELECT * FROM ${username}_customers;`)).rows;
+            await client.query("COMMIT");
+            return res.status(200).json({
+                message: "customer fetched successfully",
+                customers: response,
+            })
 
-});
+        } catch (e) {
+            console.error("Error fetching customer : ", e);
+            await client.query("ROLLBACK");
+            return res.status(500).json({ error: "Internal server error" });
+        } finally {
+            client.release(); // Release the client back to the pool}
+        }
+    });
 export default customerRouter;

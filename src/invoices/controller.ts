@@ -47,9 +47,7 @@ invoiceRouter.post("/add", async (req: Request, res: Response) => {
     // Commit the transaction
     await client.query("COMMIT");
 
-    client.release(); // Release the client back to the pool
-
-    res
+    return res
       .status(201)
       .json({ message: "invoice created successfully", invoice: invoice });
   } catch (e) {
@@ -58,9 +56,9 @@ invoiceRouter.post("/add", async (req: Request, res: Response) => {
     // Rollback the transaction in case of an error
     await client.query("ROLLBACK");
 
+    return res.status(500).json({ error: "Internal server error " + e });
+  } finally {
     client.release(); // Release the client back to the pool
-
-    res.status(500).json({ error: "Internal server error " + e });
   }
 });
 
@@ -119,7 +117,6 @@ invoiceRouter.get(
         element.lines.push(res.rows);
       }
       await client.query("COMMIT");
-      client.release();
       const compressedData = await util.promisify(zlib.gzip)(
         JSON.stringify({ invoices: responseData })
       );
@@ -128,12 +125,14 @@ invoiceRouter.get(
       res.setHeader("Content-Type", "application/json");
       res.setHeader("Vary", "Accept-Encoding");
       res.setHeader("Content-Length", compressedData.length);
-      res.status(200).end(compressedData);
+      return res.status(200).end(compressedData);
     } catch (e) {
       await client.query("ROLLBACK");
-      client.release();
+
       console.error("error Getting invoices", e);
-      res.status(500).json({ error: "Internal server error" });
+      return res.status(500).json({ error: "Internal server error" });
+    } finally {
+      client.release(); // Release the client back to the pool
     }
   }
 );

@@ -1,12 +1,12 @@
 import pgPool from "../postgresql/dbconstants";
 import { User, UserData } from "./usermodel";
 
-require("dotenv").config();
-import bcrypt from "bcrypt";
-import { Request, Response, Router } from "express";
+import dotenv from "dotenv";
+import express, { Request, Response } from "express";
 import * as Token from "../middleware/tokenhandler";
-
-const authRouter = Router();
+import { hashPassword, verifyPassword } from "../id_controller/id_genrator";
+dotenv.config();
+const authRouter = express.Router();
 
 authRouter.post("/signup", async (req: Request, res: Response) => {
   const pool = pgPool;
@@ -38,12 +38,12 @@ authRouter.post("/signup", async (req: Request, res: Response) => {
 
     if (existingUser.rows.length > 0) {
       await client.query("ROLLBACK"); // Rollback the transaction
-      client.release(); // Release the client back to the pool
+
       return res.status(409).json({ error: "Username already exists" });
     }
 
     // Encrypt the password
-    const hashedPassword = await bcrypt.hash(newUser.password, 10);
+    const hashedPassword = await hashPassword(newUser.password);
     newUser.password = hashedPassword;
 
     // Insert the new user into the database
@@ -55,9 +55,8 @@ authRouter.post("/signup", async (req: Request, res: Response) => {
     // Commit the transaction
     await client.query("COMMIT");
 
-    client.release(); // Release the client back to the pool
 
-    res
+    return res
       .status(201)
       .json({ message: "User created successfully", user: newUser, token: Token.createToken(newUser.username) });
   } catch (error) {
@@ -66,9 +65,12 @@ authRouter.post("/signup", async (req: Request, res: Response) => {
     // Rollback the transaction in case of an error
     await client.query("ROLLBACK");
 
-    client.release(); // Release the client back to the pool
 
-    res.status(500).json({ error: "Internal server error" });
+
+    return res.status(500).json({ error: "Internal server error" });
+  }
+  finally {
+    client.release(); // Release the client back to the pool
   }
 });
 
@@ -88,30 +90,31 @@ authRouter.post("/login", async (req: Request, res: Response) => {
     // If the user does not exist
     if (!user) {
       await client.query("ROLLBACK");
-      client.release();
+
       return res.status(401).json({ error: "Invalid username" });
     }
 
-    const passwordMatch = await bcrypt.compare(password, user.password);
+    const passwordMatch = await verifyPassword(password, user.password);
 
     if (!passwordMatch) {
       await client.query("ROLLBACK");
-      client.release();
       return res.status(401).json({ error: "Invalid  password" });
     }
 
     await client.query("COMMIT");
-    client.release();
-    res.status(200).json({
+
+    return res.status(200).json({
       message: "Login successful",
       token: Token.createToken(username),
     });
   } catch (error) {
     await client.query("ROLLBACK");
-    client.release();
+
     console.error("Error logging in:", error);
 
-    res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error: "Internal server error" });
+  } finally {
+    client.release(); // Release the client back to the pool
   }
 });
 
