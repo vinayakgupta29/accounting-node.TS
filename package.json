@@ -4,27 +4,24 @@
     "start": "nodemon"
   },
   "dependencies": {
-    "argon2": "^0.43.0",
+    "argon2": "^0.44.0",
     "chartjs": "^0.3.24",
-    "express": "^5.1.0",
-    "express-validator": "^7.2.1",
-    "jsonwebtoken": "^9.0.2",
-    "nodemon": "^3.1.10",
+    "express": "^5.2.1",
+    "express-validator": "^7.3.1",
+    "jsonwebtoken": "^9.0.3",
+    "nodemon": "^3.1.11",
     "pg": "^8.16.3",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "typescript": "^5.8.3",
+    "typescript": "^5.9.3",
     "util": "^0.12.5",
     "zlib": "^1.0.5"
   },
   "devDependencies": {
-    "@types/argon2": "^0.14.1",
-    "@types/chart.js": "^2.9.38",
-    "@types/express": "^5.0.3",
+    "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/pg": "^8.15.4",
+    "@types/pg": "^8.16.0",
     "@types/swagger-ui-express": "^4.1.8",
-    "@types/typescript": "^0.4.29",
-    "dotenv": "^17.2.0"
+    "dotenv": "^17.2.3"
   }
 }
