@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: accounting-ts-app
+    restart: always
+    ports:
+      - "420:420"
+    environment:
+      - PORT=420
+      - HOST=db
+      - USER=postgres
+      - PASSWORD=postgrespassword
+      - DATABASE=accounting_db
+      - TOKEN_KEY=jwt_secret_key_ts_123
+      - ENV=dev
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16-alpine
+    container_name: accounting-ts-db
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgrespassword
+      - POSTGRES_DB=accounting_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_ts:/var/lib/postgresql/data
+
+volumes:
+  pgdata_ts:

@@ -9,7 +9,12 @@ import { InvoiceActions, invoiceActions } from "./ctrlFunc";
 import { cleanAlphanumeric } from "../server-security/server-security";
 const invoiceRouter = Router();
 
-
+/**
+ * POST /invoice/add
+ * Creates a master invoice header and child line items in an atomic transaction.
+ * Generates transaction ID (`txn_...`), fetches current unit price from inventory,
+ * computes line totals, and inserts into `<username>_invoice_lines`.
+ */
 invoiceRouter.post("/add", async (req: Request, res: Response) => {
   const pool = pgPool;
   const client = await pool.connect();
@@ -62,6 +67,11 @@ invoiceRouter.post("/add", async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * GET /invoice/get
+ * Retrieves tenant invoices joined with customer details and line items.
+ * Supports date filtering actions and streams the JSON payload using Gzip compression.
+ */
 invoiceRouter.get(
   "/get",
   [query("username").trim().customSanitizer(cleanAlphanumeric).isString()],

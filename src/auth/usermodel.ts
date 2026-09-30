@@ -1,5 +1,8 @@
 import { PoolClient } from "pg";
 
+/**
+ * Data transfer object representing a business tenant registration.
+ */
 interface UserData {
   name: string;
   username: string;
@@ -12,7 +15,14 @@ interface UserData {
   adhaar: string;
 }
 
+/**
+ * User data access object managing the global `users` table.
+ */
 const User = {
+  /**
+   * Initializes the global `users` table if not already created.
+   * @param client - Active PostgreSQL pool client from transaction
+   */
   createTable: async function (client: PoolClient) {
     try {
       const sql = `CREATE TABLE IF NOT EXISTS users (
@@ -32,6 +42,12 @@ const User = {
     }
   },
 
+  /**
+   * Inserts a new user record into the global `users` table.
+   * Note: The password must be hashed before calling this method.
+   * @param client - Active PostgreSQL pool client from transaction
+   * @param userData - Validated user profile data
+   */
   insertRecord: async function (
     client: PoolClient,
     userData: UserData

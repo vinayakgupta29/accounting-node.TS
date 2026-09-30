@@ -5,9 +5,14 @@ import dotenv from "dotenv";
 import express, { Request, Response } from "express";
 import * as Token from "../middleware/tokenhandler";
 import { hashPassword, verifyPassword } from "../id_controller/id_genrator";
-dotenv.config();
 const authRouter = express.Router();
 
+/**
+ * POST /auth/signup
+ * Registers a new tenant user account.
+ * Performs username uniqueness check, hashes password with Argon2id,
+ * inserts into the users table within an ACID transaction, and generates a JWT.
+ */
 authRouter.post("/signup", async (req: Request, res: Response) => {
   const pool = pgPool;
   const client = await pool.connect(); // Acquire a client from the pool
@@ -74,6 +79,10 @@ authRouter.post("/signup", async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * POST /auth/login
+ * Authenticates user credentials via Argon2id verification and returns a JWT token.
+ */
 authRouter.post("/login", async (req: Request, res: Response) => {
   const pool = pgPool;
   const client = await pool.connect();

@@ -5,6 +5,11 @@ import pgPool from "../postgresql/dbconstants";
 
 const inventoryRouter = Router();
 
+/**
+ * POST /inventory/add
+ * Adds a new product to the tenant's inventory table.
+ * Runs inside a PostgreSQL transaction and ensures table existence.
+ */
 inventoryRouter.post("/add", async (req: Request, res: Response) => {
 
   const pool = pgPool;

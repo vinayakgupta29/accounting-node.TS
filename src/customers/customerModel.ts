@@ -1,17 +1,27 @@
 import { Pool, PoolClient } from "pg";
+
+/**
+ * Customer entity interface defining tenant client attributes.
+ */
 interface Customer {
-  customer_id: string
-  name: string,
-  address: string,
-  phone_number: string,
-  email: string,
-  gstIN: string,
-  dealer_type: string,
-  pan_card: string,
-  aadhaar: string,
+  customer_id: string;
+  name: string;
+  address: string;
+  phone_number: string;
+  email: string;
+  gstIN: string;
+  dealer_type: string;
+  pan_card: string;
+  aadhaar: string;
 }
 
+/**
+ * Customers DAO managing dynamic per-tenant `<username>_customers` tables.
+ */
 const Customers = {
+  /**
+   * Provisions `<username>_customers` table if it does not yet exist.
+   */
   createTable: async function (client: PoolClient, username: string) {
     const sql = `CREATE TABLE IF NOT EXISTS ${username}_customers (
       id SERIAL PRIMARY KEY,
@@ -28,6 +38,9 @@ const Customers = {
     await client.query(sql);
   },
 
+  /**
+   * Inserts a customer record into the tenant's customer table.
+   */
   insertRecord: async function (
     client: PoolClient,
     username: String,

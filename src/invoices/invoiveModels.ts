@@ -1,20 +1,30 @@
 import { PoolClient } from "pg";
-interface Invoice {
 
-  customer_id: string,
-  transaction_id: string,
-  date_time: string,
-  total: number,
-  total_discount: number,
-  packaging: number,
-  freight: number,
-  taxable_amount: number,
-  tax_collected_at_source: number,
-  round_off: number,
-  grand_total: number,
-  method_of_payment: string
+/**
+ * Invoice entity interface representing master invoice headers.
+ */
+interface Invoice {
+  customer_id: string;
+  transaction_id: string;
+  date_time: string;
+  total: number;
+  total_discount: number;
+  packaging: number;
+  freight: number;
+  taxable_amount: number;
+  tax_collected_at_source: number;
+  round_off: number;
+  grand_total: number;
+  method_of_payment: string;
 }
+
+/**
+ * Invoices DAO managing the tenant's `<username>_invoices` table.
+ */
 const Invoices = {
+  /**
+   * Provisions `<username>_invoices` table referencing the tenant's customer table.
+   */
   createTable: async function (client: PoolClient, username: string) {
     const sql = `CREATE TABLE IF NOT EXISTS ${username}_invoices (
       id SERIAL PRIMARY KEY,

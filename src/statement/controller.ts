@@ -8,6 +8,11 @@ import { query, validationResult } from "express-validator";
 
 const statementRouter = express.Router();
 
+/**
+ * GET /stmt/get
+ * Generates and returns account billing statement for the specified tenant username.
+ * Supports date actions and delivers responses with Gzip compression.
+ */
 statementRouter.get("/get",
     [query("username").trim().customSanitizer(cleanAlphanumeric).isString()],
     async (req: Request, res: Response) => {

@@ -6,6 +6,12 @@ import { generateCustomerId } from "../id_controller/id_genrator";
 
 const customerRouter = Router();
 
+/**
+ * POST /customer/add
+ * Registers a new customer under the tenant's isolated table.
+ * Validates alphanumeric fields, derives a new customer ID (`cust_...`),
+ * and executes within an atomic transaction.
+ */
 customerRouter.post("/add", [
     body("name").isString().trim().notEmpty().isAlphanumeric(),
     body("address").isString().trim().notEmpty().isAlphanumeric(),
@@ -79,6 +85,10 @@ customerRouter.post("/add", [
         }
     });
 
+/**
+ * GET /customer/get
+ * Retrieves all registered customers for the specified tenant username.
+ */
 customerRouter.get("/get",
     [query('username').isString().trim().isAlphanumeric()],
 
